@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.azure.bulkactionsdemo</groupId>
+    <artifactId>bulkactions-java-sdk-demo</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+
+    <name>BulkActions Java SDK Demo</name>
+    <description>Demonstrates the Azure Compute BulkActions Java SDK</description>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <!-- Azure Identity (DefaultAzureCredential) -->
+        <dependency>
+            <groupId>com.azure</groupId>
+            <artifactId>azure-identity</artifactId>
+            <version>1.18.2</version>
+        </dependency>
+
+        <!-- Azure Resource Manager - Compute BulkActions -->
+        <dependency>
+            <groupId>com.azure.resourcemanager</groupId>
+            <artifactId>azure-resourcemanager-computebulkactions</artifactId>
+            <version>1.0.0-beta.1</version>
+        </dependency>
+
+        <!-- Azure Resource Manager - Resources (Resource Groups) -->
+        <dependency>
+            <groupId>com.azure.resourcemanager</groupId>
+            <artifactId>azure-resourcemanager-resources</artifactId>
+            <version>2.53.0</version>
+        </dependency>
+
+        <!-- Azure Resource Manager - Network (VNet) -->
+        <dependency>
+            <groupId>com.azure.resourcemanager</groupId>
+            <artifactId>azure-resourcemanager-network</artifactId>
+            <version>2.53.0</version>
+        </dependency>
+
+        <!-- Azure Resource Manager - Compute -->
+        <dependency>
+            <groupId>com.azure.resourcemanager</groupId>
+            <artifactId>azure-resourcemanager-compute</artifactId>
+            <version>2.53.0</version>
+        </dependency>
+
+        <!-- Azure Core Management -->
+        <dependency>
+            <groupId>com.azure</groupId>
+            <artifactId>azure-core-management</artifactId>
+            <version>1.19.3</version>
+        </dependency>
+
+        <!-- SLF4J Simple for logging output -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>2.0.9</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- exec-maven-plugin to run the demo -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <mainClass>com.azure.bulkactionsdemo.BulkActionsDemo</mainClass>
+                </configuration>
+            </plugin>
+
+            <!-- maven-shade-plugin: build a fat JAR with all dependencies -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com.azure.bulkactionsdemo.BulkActionsDemo</mainClass>
+                                </transformer>
+                                <!-- Merge META-INF/services files -->
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+                            </transformers>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
