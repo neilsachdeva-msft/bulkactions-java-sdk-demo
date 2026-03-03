@@ -72,7 +72,7 @@ import java.util.logging.Logger;
 /**
  * Azure Compute BulkActions Java SDK Demo.
  *
- * Mirrors the Go SDK demo flow:
+ * This demo showcases the usage of the Azure Compute BulkActions service through the Java SDK.
  *   1. Setup: authenticate, create resource group + virtual network
  *   2. Create 1K Regular VMs using VM sizes
  *   3. List succeeded VMs, then delete them (force delete)
@@ -603,7 +603,6 @@ public class BulkActionsDemo {
     /**
      * HTTP pipeline policy that logs error responses (4xx/5xx) with correlation IDs
      * and response bodies for debugging, while suppressing noise from successful calls.
-     * Equivalent to the Go demo's loggingPolicy.
      */
     private static class ErrorLoggingPolicy implements HttpPipelinePolicy {
         @Override
