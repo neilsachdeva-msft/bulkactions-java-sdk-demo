@@ -55,6 +55,13 @@
             <version>2.53.0</version>
         </dependency>
 
+        <!-- Azure Resource Manager - ComputeSchedule (for ExecuteDelete / GetOperationStatus) -->
+        <dependency>
+            <groupId>com.azure.resourcemanager</groupId>
+            <artifactId>azure-resourcemanager-computeschedule</artifactId>
+            <version>1.1.0</version>
+        </dependency>
+
         <!-- Azure Core Management -->
         <dependency>
             <groupId>com.azure</groupId>

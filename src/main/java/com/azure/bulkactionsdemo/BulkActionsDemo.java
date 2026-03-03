@@ -17,25 +17,17 @@ import com.azure.resourcemanager.computebulkactions.models.CachingTypes;
 import com.azure.resourcemanager.computebulkactions.models.CapacityType;
 import com.azure.resourcemanager.computebulkactions.models.ComputeProfile;
 import com.azure.resourcemanager.computebulkactions.models.CpuManufacturer;
-import com.azure.resourcemanager.computebulkactions.models.DeleteResourceOperationResponse;
 import com.azure.resourcemanager.computebulkactions.models.DiskCreateOptionTypes;
 import com.azure.resourcemanager.computebulkactions.models.DiskDeleteOptionTypes;
-import com.azure.resourcemanager.computebulkactions.models.ExecuteDeleteRequest;
-import com.azure.resourcemanager.computebulkactions.models.ExecutionParameters;
-import com.azure.resourcemanager.computebulkactions.models.GetOperationStatusRequest;
-import com.azure.resourcemanager.computebulkactions.models.GetOperationStatusResponse;
 import com.azure.resourcemanager.computebulkactions.models.ImageReference;
 import com.azure.resourcemanager.computebulkactions.models.LaunchBulkInstancesOperationProperties;
 import com.azure.resourcemanager.computebulkactions.models.ManagedDiskParameters;
 import com.azure.resourcemanager.computebulkactions.models.NetworkApiVersion;
 import com.azure.resourcemanager.computebulkactions.models.NetworkProfile;
 import com.azure.resourcemanager.computebulkactions.models.OperatingSystemTypes;
-import com.azure.resourcemanager.computebulkactions.models.OperationState;
 import com.azure.resourcemanager.computebulkactions.models.OSDisk;
 import com.azure.resourcemanager.computebulkactions.models.OSProfile;
 import com.azure.resourcemanager.computebulkactions.models.PriorityProfile;
-import com.azure.resourcemanager.computebulkactions.models.Resources;
-import com.azure.resourcemanager.computebulkactions.models.RetryPolicy;
 import com.azure.resourcemanager.computebulkactions.models.StorageAccountTypes;
 import com.azure.resourcemanager.computebulkactions.models.StorageProfile;
 import com.azure.resourcemanager.computebulkactions.models.VMAttributes;
@@ -49,6 +41,15 @@ import com.azure.resourcemanager.computebulkactions.models.VirtualMachineNetwork
 import com.azure.resourcemanager.computebulkactions.models.VirtualMachineProfile;
 import com.azure.resourcemanager.computebulkactions.models.VirtualMachineType;
 import com.azure.resourcemanager.computebulkactions.models.VmSizeProfile;
+import com.azure.resourcemanager.computeschedule.ComputeScheduleManager;
+import com.azure.resourcemanager.computeschedule.models.DeleteResourceOperationResponse;
+import com.azure.resourcemanager.computeschedule.models.ExecuteDeleteRequest;
+import com.azure.resourcemanager.computeschedule.models.ExecutionParameters;
+import com.azure.resourcemanager.computeschedule.models.GetOperationStatusRequest;
+import com.azure.resourcemanager.computeschedule.models.GetOperationStatusResponse;
+import com.azure.resourcemanager.computeschedule.models.OperationState;
+import com.azure.resourcemanager.computeschedule.models.Resources;
+import com.azure.resourcemanager.computeschedule.models.RetryPolicy;
 import com.azure.resourcemanager.network.NetworkManager;
 import com.azure.resourcemanager.resources.ResourceManager;
 
@@ -94,7 +95,7 @@ public class BulkActionsDemo {
     private static final String DEFAULT_RESOURCE_GROUP_NAME = "BA-DEMO-JAVA-SDK-RG";
     private static final String DEFAULT_VNET_NAME = "BA-DEMO-VN";
 
-    private static final String LOCATION = "uksouth";
+    private static final String LOCATION = "eastasia";
 
     // ── Runtime state ──────────────────────────────────────────────────────────
     private static String subscriptionId;
@@ -102,6 +103,7 @@ public class BulkActionsDemo {
     private static String vnetName;
 
     private static ComputeBulkActionsManager bulkActionsManager;
+    private static ComputeScheduleManager computeScheduleManager;
     private static ResourceManager resourceManager;
     private static NetworkManager networkManager;
 
@@ -262,6 +264,13 @@ public class BulkActionsDemo {
                 .withSubscription(subscriptionId);
 
         networkManager = NetworkManager
+                .configure()
+                .withPolicy(loggingPolicy)
+                .authenticate(credential, profile);
+
+        // ComputeSchedule manager for ExecuteDelete / GetOperationStatus.
+        // Uses the same regional ARM endpoint profile.
+        computeScheduleManager = ComputeScheduleManager
                 .configure()
                 .withPolicy(loggingPolicy)
                 .authenticate(credential, profile);
@@ -479,14 +488,14 @@ public class BulkActionsDemo {
 
         for (int attempt = 1; attempt <= 5; attempt++) {
             try {
-                DeleteResourceOperationResponse resp = bulkActionsManager.bulkActions()
+                DeleteResourceOperationResponse resp = computeScheduleManager.scheduledActions()
                         .virtualMachinesExecuteDelete(LOCATION, new ExecuteDeleteRequest()
                                 .withExecutionParameters(new ExecutionParameters()
                                         .withRetryPolicy(new RetryPolicy()
                                                 .withRetryCount(5)
                                                 .withRetryWindowInMinutes(15)))
                                 .withResources(new Resources().withIds(vmIds))
-                                .withCorrelationId(correlationId)
+                                .withCorrelationid(correlationId)
                                 .withForceDeletion(true));
 
                 // Extract operation IDs from the response results
@@ -521,10 +530,10 @@ public class BulkActionsDemo {
             sleep(Duration.ofSeconds(60));
 
             try {
-                GetOperationStatusResponse statusResp = bulkActionsManager.bulkActions()
+                GetOperationStatusResponse statusResp = computeScheduleManager.scheduledActions()
                         .virtualMachinesGetOperationStatus(LOCATION, new GetOperationStatusRequest()
                                 .withOperationIds(operationIds)
-                                .withCorrelationId(correlationId));
+                                .withCorrelationid(correlationId));
 
                 boolean allDone = true;
                 int failedCount = 0;
