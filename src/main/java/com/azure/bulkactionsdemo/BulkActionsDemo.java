@@ -95,7 +95,7 @@ public class BulkActionsDemo {
     private static final String DEFAULT_RESOURCE_GROUP_NAME = "BA-DEMO-JAVA-SDK-RG";
     private static final String DEFAULT_VNET_NAME = "BA-DEMO-VN";
 
-    private static final String LOCATION = "eastasia";
+    private static final String LOCATION = "uksouth";
 
     // ── Runtime state ──────────────────────────────────────────────────────────
     private static String subscriptionId;
@@ -126,7 +126,7 @@ public class BulkActionsDemo {
         // 1) Create 1K VMs of Regular priority using VM Sizes.
         String baRegular1KOpId = createBulkActions(
                 CapacityType.VM,                 // capacityType
-                1000,                            // capacity
+                1000,                   // capacity
                 VirtualMachineType.REGULAR,      // priorityType
                 List.of(                         // vmSizesProfile
                         new VmSizeProfile().withName("Standard_F1s"),
@@ -154,12 +154,12 @@ public class BulkActionsDemo {
 
         // 4) Create 40K vCPUs of Spot priority using VM Attributes.
         String baSpot40KOpId = createBulkActions(
-                CapacityType.VCPU,               // capacityType
-                40000,                           // capacity
-                VirtualMachineType.SPOT,         // priorityType
-                null,                            // vmSizesProfile
-                buildVmAttributes(),             // vmAttributes
-                false                            // waitForCompletion — don't wait, check in-progress VMs after 1 min
+                CapacityType.VCPU,                   // capacityType
+                40000,                     // capacity
+                VirtualMachineType.SPOT,            // priorityType
+                null,               // vmSizesProfile
+                buildVmAttributes(),               // vmAttributes
+                false           // waitForCompletion — don't wait, check in-progress VMs after 1 min
         );
 
         // 5) After 1 min, GET the list of VMs still in progress from the BA using LIST VMs.
@@ -187,11 +187,11 @@ public class BulkActionsDemo {
                 try {
                     createBulkActions(
                             CapacityType.VCPU,           // capacityType
-                            10000,                       // capacity
+                            10000,              // capacity
                             VirtualMachineType.SPOT,     // priorityType
-                            null,                        // vmSizesProfile
+                            null,         // vmSizesProfile
                             buildVmAttributes(),         // vmAttributes
-                            true                         // waitForCompletion
+                            true       // waitForCompletion
                     );
                 } catch (Exception e) {
                     LOG.log(Level.SEVERE, String.format("Concurrent BA #%d failed", idx), e);
@@ -309,7 +309,16 @@ public class BulkActionsDemo {
                 .withAddressSpace("10.1.0.0/16")
                 .withSubnet("default", "10.1.0.0/18")
                 .create();
-        LOG.info(String.format("Created virtual network %s", vnetName));
+
+        // Disable default outbound access on the subnet (S360 compliance).
+        com.azure.resourcemanager.network.fluent.models.SubnetInner subnet =
+                networkManager.serviceClient().getSubnets()
+                        .get(resourceGroupName, vnetName, "default");
+        subnet.withDefaultOutboundAccess(false);
+        networkManager.serviceClient().getSubnets()
+                .createOrUpdate(resourceGroupName, vnetName, "default", subnet);
+
+        LOG.info(String.format("Created virtual network %s (defaultOutboundAccess=false)", vnetName));
     }
 
     // ════════════════════════════════════════════════════════════════════════════
